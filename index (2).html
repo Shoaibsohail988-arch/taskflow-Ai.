@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TaskFlow AI — Smart Admin & Action Queue</title>
+  <style>
+    :root {
+      --bg: #f1f5f9;
+      --surface: #ffffff;
+      --text: #0f172a;
+      --muted: #475569;
+      --border: #e2e8f0;
+      --primary: #1d4ed8;
+      --primary-hover: #1e40af;
+      --ing-orange: #ff6200;
+      --ing-orange-hover: #e55800;
+      --ideal-pink: #cc0066;
+      --success: #15803d;
+      --success-bg: #dcfce7;
+      --warn-bg: #fef3c7;
+      --warn-fg: #92400e;
+      --danger: #dc2626;
+      --danger-bg: #fee2e2;
+      --shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.06), 0 4px 10px -4px rgba(15, 23, 42, 0.04);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+    }
+
+    /* NAVBAR */
+    .navbar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .nav-inner {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+      color: #fff;
+      font-weight: 800;
+      display: grid;
+      place-items: center;
+      font-size: 1rem;
+    }
+
+    .brand-name {
+      font-weight: 800;
+      font-size: 1.15rem;
+      letter-spacing: -0.02em;
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .lang-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+    }
+
+    .lang-pill select {
+      border: none;
+      background: transparent;
+      font-weight: 700;
+      color: var(--text);
+      cursor: pointer;
+      outline: none;
+    }
+
+    .plan-pill {
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    .plan-free {
+      background: #e2e8f0;
+      color: #334155;
+    }
+
+    .plan-pro {
+      background: var(--success-bg);
+      color: var(--success);
+    }
+
+    /* MAIN CONTAINER */
+    .container {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 28px 20px 60px;
+    }
+
+    /* HERO / LANDING + AUTH */
+    .landing-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 28px;
+      align-items: start;
+      margin-top: 12px;
+    }
+
+    @media (max-width: 860px) {
+      .landing-grid { grid-template-columns: 1fr; }
+    }
+
+    .hero-box h1 {
+      font-size: 2.2rem;
+      line-height: 1.18;
+      margin: 0 0 14px;
+      letter-spacing: -0.03em;
+    }
+
+    .hero-box p {
+      color: var(--muted);
+      font-size: 1.05rem;
+      margin: 0 0 22px;
+    }
+
+    .pricing-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    @media (max-width: 540px) {
+      .pricing-cards { grid-template-columns: 1fr; }
+    }
+
+    .price-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .price-card.featured {
+      border: 2px solid var(--primary);
+      position: relative;
+    }
+
+    .price-tag {
+      font-size: 1.65rem;
+      font-weight: 800;
+      margin: 6px 0;
+    }
+
+    .price-tag span {
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: var(--muted);
+    }
+
+    .feature-list {
+      margin: 12px 0 0;
+      padding: 0;
+      list-style: none;
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+
+    .feature-list li {
+      margin-bottom: 6px;
+    }
+
+    /* CARDS & FORMS */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      background: #f1f5f9;
+      padding: 4px;
+      border-radius: 10px;
+      margin-bottom: 18px;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      padding: 9px;
+      border-radius: 8px;
+      font-weight: 700;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .tab-btn.active {
+      background: #fff;
+      color: var(--text);
+      box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+    }
+
+    .field {
+      margin-bottom: 13px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.86rem;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      color: var(--text);
+      background: #fff;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.12);
+    }
+
+    textarea {
+      min-height: 105px;
+      resize: vertical;
+    }
+
+    .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    @media (max-width: 640px) {
+      .row-2 { grid-template-columns: 1fr; }
+    }
+
+    button {
+      border: none;
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--primary-hover);
+    }
+
+    .btn-secondary {
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+
+    .btn-ing {
+      background: var(--ing-orange);
+      color: #fff;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-ing:hover {
+      background: var(--ing-orange-hover);
+    }
+
+    .btn-sm {
+      padding: 6px 11px;
+      font-size: 0.82rem;
+    }
+
+    /* USAGE METER BANNER */
+    .usage-banner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-bottom: 20px;
+    }
+
+    .progress-wrap {
+      width: 240px;
+      max-width: 100%;
+      height: 8px;
+      background: #e2e8f0;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: var(--primary);
+      transition: width 0.25s ease;
+    }
+
+    .progress-bar.limit-hit {
+      background: var(--danger);
+    }
+
+    .paywall-alert {
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      border-radius: 12px;
+      padding: 16px 18px;
+      margin-bottom: 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    /* TASKS */
+    .preview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 9px;
+      border-radius: 999px;
+      font-size: 0.76rem;
+      font-weight: 700;
+    }
+
+    .High { background: var(--danger-bg); color: var(--danger); }
+    .Medium { background: var(--warn-bg); color: var(--warn-fg); }
+    .Low { background: var(--success-bg); color: var(--success); }
+
+    .task-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .task-item {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      background: #fcfcfd;
+    }
+
+    .task-item.done { opacity: 0.62; }
+    .task-item.done .task-title { text-decoration: line-through; }
+
+    .task-title {
+      font-weight: 700;
+      margin: 0 0 4px;
+    }
+
+    .task-meta {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .task-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .msg-error {
+      color: var(--danger);
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-top: 8px;
+      min-height: 18px;
+    }
+
+    /* MODAL FOR iDEAL / ING CHECKOUT */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      display: none;
+      place-items: center;
+      padding: 16px;
+      z-index: 50;
+    }
+
+    .modal-card {
+      background: #fff;
+      border-radius: 16px;
+      max-width: 460px;
+      width: 100%;
+      padding: 24px;
+      box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+    }
+
+    .ideal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+    }
+
+    .ideal-badge {
+      background: var(--ideal-pink);
+      color: #fff;
+      font-weight: 800;
+      font-size: 0.82rem;
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+
+    .ing-box {
+      border: 2px solid var(--ing-orange);
+      background: #fffaf5;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .ing-logo {
+      background: var(--ing-orange);
+      color: #fff;
+      font-weight: 900;
+      padding: 4px 10px;
+      border-radius: 6px;
+      letter-spacing: 0.04em;
+    }
+  </style>
+</head>
+<body>
+  <!-- TOP NAVIGATION -->
+  <header class="navbar">
+    <div class="nav-inner">
+      <div class="brand">
+        <div class="brand-icon">TF</div>
+        <span class="brand-name">TaskFlow AI</span>
+      </div>
+
+      <div class="nav-right">
+        <div class="lang-pill">
+          <span id="lblLang">Language:</span>
+          <select id="langSelect">
+            <option value="en">English</option>
+            <option value="nl">Nederlands</option>
+            <option value="arabish">Arabish</option>
+          </select>
+        </div>
+
+        <div id="userControls" style="display:none; align-items:center; gap:10px;">
+          <span class="plan-pill plan-free" id="navPlanBadge">FREE PLAN</span>
+          <span id="navUserName" style="font-size:0.88rem; font-weight:600;"></span>
+          <button class="btn-ing btn-sm" id="navUpgradeBtn" type="button">Upgrade (iDEAL)</button>
+          <button class="btn-ghost btn-sm" id="logoutBtn" type="button">Log Out</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- LANDING + AUTH VIEW -->
+    <section id="landingAuthSection" class="landing-grid">
+      <div class="hero-box">
+        <h1 id="heroTitle">Turn messy messages into clear, approved action items.</h1>
+        <p id="heroSubtitle">Built for busy founders, freelancers, and local teams. Extract tasks in English, Nederlands, or Arabish—start with 10 free tasks every month.</p>
+
+        <div class="pricing-cards">
+          <div class="price-card">
+            <strong id="freePlanTitle">Starter (Free)</strong>
+            <div class="price-tag">€0 <span id="perMonth1">/ month</span></div>
+            <ul class="feature-list">
+              <li id="freeFeat1">✓ 10 extracted & saved tasks / month</li>
+              <li id="freeFeat2">✓ English, Nederlands & Arabish</li>
+              <li id="freeFeat3">✓ Personal account dashboard</li>
+            </ul>
+          </div>
+
+          <div class="price-card featured">
+            <strong id="proPlanTitle">Pro Unlimited</strong>
+            <div class="price-tag">€19 <span id="perMonth2">/ month</span></div>
+            <ul class="feature-list">
+              <li id="proFeat1">✓ Unlimited monthly tasks</li>
+              <li id="proFeat2">✓ Instant queue translation</li>
+              <li id="proFeat3">✓ Fast payment via iDEAL (ING)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="tabs">
+          <button class="tab-btn active" id="tabLogin" type="button">Log In</button>
+          <button class="tab-btn" id="tabSignup" type="button">Create Account</button>
+        </div>
+
+        <form id="loginForm">
+          <div class="field">
+            <label for="loginEmail" id="lblLoginEmail">Email Address</label>
+            <input id="loginEmail" type="email" required placeholder="you@company.nl" />
+          </div>
+          <div class="field">
+            <label for="loginPassword" id="lblLoginPass">Password</label>
+            <input id="loginPassword" type="password" required placeholder="••••••••" />
+          </div>
+          <button class="btn-primary" style="width:100%;" id="btnLoginSubmit" type="submit">Log In</button>
+          <div class="msg-error" id="loginError"></div>
+        </form>
+
+        <form id="signupForm" style="display:none;">
+          <div class="field">
+            <label for="signupName" id="lblSignupName">Full Name</label>
+            <input id="signupName" type="text" required placeholder="Your name" />
+          </div>
+          <div class="field">
+            <label for="signupEmail" id="lblSignupEmail">Email Address</label>
+            <input id="signupEmail" type="email" required placeholder="you@company.nl" />
+          </div>
+          <div class="field">
+            <label for="signupPassword" id="lblSignupPass">Password (min. 6 characters)</label>
+            <input id="signupPassword" type="password" minlength="6" required placeholder="Create password" />
+          </div>
+          <div class="field">
+            <label for="signupConfirm" id="lblSignupConfirm">Confirm Password</label>
+            <input id="signupConfirm" type="password" minlength="6" required placeholder="Repeat password" />
+          </div>
+          <button class="btn-primary" style="width:100%;" id="btnSignupSubmit" type="submit">Create Free Account</button>
+          <div class="msg-error" id="signupError"></div>
+        </form>
+      </div>
+    </section>
+
+    <!-- LOGGED-IN APP WORKSPACE -->
+    <section id="workspaceSection" style="display:none;">
+      <!-- USAGE & PLAN BAR -->
+      <div class="usage-banner">
+        <div>
+          <strong id="usageHeadline">Monthly Usage: 0 / 10 free tasks used</strong>
+          <div class="task-meta" id="usageSubtext">Resets automatically on the 1st of next month.</div>
+          <div class="progress-wrap" id="progressWrap">
+            <div class="progress-bar" id="progressBar" style="width:0%;"></div>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:10px; align-items:center;">
+          <button class="btn-ing" id="bannerIdealBtn" type="button">
+            <span>Pay with iDEAL · ING (€19/mo)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- LIMIT REACHED PAYWALL -->
+      <div class="paywall-alert" id="paywallAlert" style="display:none;">
+        <div>
+          <strong style="color:#9a3412;" id="paywallTitle">You reached your 10 free tasks for this month.</strong>
+          <div class="task-meta" id="paywallDesc">Upgrade to Pro Unlimited (€19/month) via iDEAL (ING) to keep extracting and saving tasks.</div>
+        </div>
+        <button class="btn-ing" id="paywallUpgradeBtn" type="button">Unlock Unlimited via iDEAL (ING)</button>
+      </div>
+
+      <!-- STEP 1: EXTRACT -->
+      <div class="card">
+        <label for="rawInput" id="lblStep1">1. Paste Messy Note / Customer Message / Admin Update</label>
+        <textarea id="rawInput" placeholder="Example: Customer called about leaking boiler on Kerkstraat 12, urgent tomorrow morning, send quote..."></textarea>
+
+        <div class="row-2" style="margin-top:12px;">
+          <div class="field">
+            <label for="apiKey" id="lblApiKey">Optional OpenAI API Key (uses built-in smart parser if blank)</label>
+            <input id="apiKey" type="password" placeholder="sk-... (optional)" />
+          </div>
+          <div class="field">
+            <label for="defaultCategory" id="lblCatHint">Default Category Hint</label>
+            <select id="defaultCategory">
+              <option value="Operations">Operations</option>
+              <option value="Billing / Quotes">Billing / Quotes</option>
+              <option value="School / Study">School / Study</option>
+              <option value="Follow-Up">Follow-Up</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:8px;">
+          <button class="btn-primary" id="extractBtn" type="button">Extract Action Item</button>
+          <button class="btn-secondary" id="sampleBtn" type="button">Load Sample Note</button>
+          <span id="statusText" style="margin-left:auto; font-size:0.85rem; color:var(--muted);">Ready</span>
+        </div>
+      </div>
+
+      <!-- STEP 2: APPROVE -->
+      <div class="card" id="reviewCard" style="display:none;">
+        <label style="margin-bottom:10px;" id="lblStep2">2. Review & Approve Before Saving</label>
+        <div class="preview-grid">
+          <div class="field">
+            <label for="outTitle" id="lblOutTitle">Title</label>
+            <input id="outTitle" type="text" />
+          </div>
+          <div class="field">
+            <label for="outCategory" id="lblOutCategory">Category</label>
+            <input id="outCategory" type="text" />
+          </div>
+          <div class="field">
+            <label for="outPriority" id="lblOutPriority">Priority</label>
+            <select id="outPriority">
+              <option value="High">High</option>
+              <option value="Medium">Medium</option>
+              <option value="Low">Low</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="outNextStep" id="lblOutNextStep">Recommended Next Step</label>
+          <input id="outNextStep" type="text" />
+        </div>
+        <div style="display:flex; gap:10px;">
+          <button class="btn-primary" id="saveBtn" type="button">Approve & Save Task</button>
+          <button class="btn-ghost" id="discardBtn" type="button">Discard</button>
+        </div>
+      </div>
+
+      <!-- STEP 3: SAVED QUEUE -->
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px;">
+          <label style="margin:0;" id="lblStep3">3. Your Saved Action Queue</label>
+          <div style="display:flex; gap:8px;">
+            <button class="btn-secondary btn-sm" id="translateAllBtn" type="button">Translate Queue</button>
+            <button class="btn-ghost btn-sm" id="clearAllBtn" type="button">Clear List</button>
+          </div>
+        </div>
+        <div class="task-list" id="taskList"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- iDEAL / ING PAYMENT MODAL -->
+  <div class="modal-backdrop" id="idealModal">
+    <div class="modal-card">
+      <div class="ideal-header">
+        <div>
+          <strong style="font-size:1.1rem;">TaskFlow AI Pro</strong>
+          <div class="task-meta">Unlimited monthly tasks & instant translation</div>
+        </div>
+        <span class="ideal-badge">iDEAL</span>
+      </div>
+
+      <div class="ing-box">
+        <div>
+          <strong style="display:block;">Selected Bank: ING Nederland</strong>
+          <span class="task-meta">Direct bank authorization · €19.00 / month</span>
+        </div>
+        <span class="ing-logo">ING</span>
+      </div>
+
+      <div class="field">
+        <label for="bankSelect">Choose Your Dutch Bank (iDEAL)</label>
+        <select id="bankSelect">
+          <option value="ING">ING</option>
+          <option value="ABN AMRO">ABN AMRO</option>
+          <option value="Rabobank">Rabobank</option>
+          <option value="SNS">SNS</option>
+          <option value="ASN Bank">ASN Bank</option>
+          <option value="bunq">bunq</option>
+          <option value="Revolut">Revolut</option>
+        </select>
+      </div>
+
+      <p class="task-meta" style="margin-bottom:16px;">
+        Clicking below opens your secure iDEAL checkout link connected to your ING receiving account.
+      </p>
+
+      <div style="display:grid; gap:10px;">
+        <button class="btn-ing" id="proceedIdealBtn" type="button">Pay €19.00 with iDEAL (ING)</button>
+        <button class="btn-secondary" id="demoActivateProBtn" type="button">Simulate Paid Checkout (Test Pro Now)</button>
+        <button class="btn-ghost" id="closeModalBtn" type="button">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================================
+    // REPLACE THIS URL WITH YOUR REAL MOLLIE OR STRIPE iDEAL PAYMENT LINK
+    // (Connected to your ING IBAN inside your Mollie or Stripe dashboard)
+    // =========================================================================
+    const IDEAL_PAYMENT_LINK = "https://buy.stripe.com/test_replace_with_your_ideal_link";
+
+    const FREE_MONTHLY_LIMIT = 10;
+    const USERS_KEY = "tf_pro_users_v1";
+    const SESSION_KEY = "tf_pro_session_v1";
+    const LANG_KEY = "tf_pro_lang_v1";
+
+    const I18N = {
+      en: {
+        lblLang: "Language:",
+        heroTitle: "Turn messy messages into clear, approved action items.",
+        heroSubtitle: "Built for busy founders, freelancers, and local teams. Extract tasks in English, Nederlands, or Arabish—start with 10 free tasks every month.",
+        freePlanTitle: "Starter (Free)",
+        proPlanTitle: "Pro Unlimited",
+        perMonth: "/ month",
+        freeFeat1: "✓ 10 extracted & saved tasks / month",
+        freeFeat2: "✓ English, Nederlands & Arabish",
+        freeFeat3: "✓ Personal account dashboard",
+        proFeat1: "✓ Unlimited monthly tasks",
+        proFeat2: "✓ Instant queue translation",
+        proFeat3: "✓ Fast payment via iDEAL (ING)",
+        tabLogin: "Log In",
+        tabSignup: "Create Account",
+        lblLoginEmail: "Email Address",
+        lblLoginPass: "Password",
+        btnLoginSubmit: "Log In",
+        lblSignupName: "Full Name",
+        lblSignupEmail: "Email Address",
+        lblSignupPass: "Password (min. 6 characters)",
+        lblSignupConfirm: "Confirm Password",
+        btnSignupSubmit: "Create Free Account",
+        logoutBtn: "Log Out",
+        lblStep1: "1. Paste Messy Note / Customer Message / Admin Update",
+        lblApiKey: "Optional OpenAI API Key (uses built-in smart parser if blank)",
+        lblCatHint: "Default Category Hint",
+        extractBtn: "Extract Action Item",
+        sampleBtn: "Load Sample Note",
+        statusReady: "Ready",
+        lblStep2: "2. Review & Approve Before Saving",
+        lblOutTitle: "Title",
+        lblOutCategory: "Category",
+        lblOutPriority: "Priority",
+        lblOutNextStep: "Recommended Next Step",
+        saveBtn: "Approve & Save Task",
+        discardBtn: "Discard",
+        lblStep3: "3. Your Saved Action Queue",
+        translateAllBtn: "Translate Queue",
+        clearAllBtn: "Clear List",
+        catLabel: "Category",
+        nextStepLabel: "Next step",
+        btnDone: "Done",
+        btnReopen: "Reopen",
+        btnTranslate: "Translate",
+        btnDelete: "Delete",
+        emptyQueue: 'No saved tasks yet. Paste a note above and click "Approve & Save Task".',
+        sampleText: "Hey, supplier invoice #408 came in for €320 due Friday, plus customer asked if we have 2 units ready to ship before Monday."
+      },
+      nl: {
+        lblLang: "Taal:",
+        heroTitle: "Zet rommelige berichten om in duidelijke, goedgekeurde taken.",
+        heroSubtitle: "Gebouwd voor ondernemers, freelancers en lokale teams. Extraheer taken in Engels, Nederlands of Arabish—start met 10 gratis taken per maand.",
+        freePlanTitle: "Starter (Gratis)",
+        proPlanTitle: "Pro Onbeperkt",
+        perMonth: "/ maand",
+        freeFeat1: "✓ 10 taken extraheren & opslaan / maand",
+        freeFeat2: "✓ Engels, Nederlands & Arabish",
+        freeFeat3: "✓ Persoonlijk dashboard",
+        proFeat1: "✓ Onbeperkt aantal taken per maand",
+        proFeat2: "✓ Directe vertaling van je takenlijst",
+        proFeat3: "✓ Snel betalen via iDEAL (ING)",
+        tabLogin: "Inloggen",
+        tabSignup: "Account aanmaken",
+        lblLoginEmail: "E-mailadres",
+        lblLoginPass: "Wachtwoord",
+        btnLoginSubmit: "Inloggen",
+        lblSignupName: "Volledige naam",
+        lblSignupEmail: "E-mailadres",
+        lblSignupPass: "Wachtwoord (min. 6 tekens)",
+        lblSignupConfirm: "Bevestig wachtwoord",
+        btnSignupSubmit: "Gratis account aanmaken",
+        logoutBtn: "Uitloggen",
+        lblStep1: "1. Plak rommelige notitie / klantbericht / admin-update",
+        lblApiKey: "Optionele OpenAI API-sleutel (gebruikt slimme parser indien leeg)",
+        lblCatHint: "Standaard categoriehint",
+        extractBtn: "Actiepunt extraheren",
+        sampleBtn: "Voorbeeld laden",
+        statusReady: "Klaar",
+        lblStep2: "2. Controleer & keur goed voor opslaan",
+        lblOutTitle: "Titel",
+        lblOutCategory: "Categorie",
+        lblOutPriority: "Prioriteit",
+        lblOutNextStep: "Aanbevolen volgende stap",
+        saveBtn: "Goedkeuren & taak opslaan",
+        discardBtn: "Verwerpen",
+        lblStep3: "3. Jouw opgeslagen takenlijst",
+        translateAllBtn: "Lijst vertalen",
+        clearAllBtn: "Lijst wissen",
+        catLabel: "Categorie",
+        nextStepLabel: "Volgende stap",
+        btnDone: "Klaar",
+        btnReopen: "Heropenen",
+        btnTranslate: "Vertaal",
+        btnDelete: "Verwijder",
+        emptyQueue: 'Nog geen opgeslagen taken. Plak hierboven een notitie en klik op "Goedkeuren & taak opslaan".',
+        sampleText: "Hoi, leveranciersfactuur #408 van €320 is vrijdag vervallen, en een klant vroeg of er 2 stuks voor maandag klaarstaan."
+      },
+      arabish: {
+        lblLang: "El logha:",
+        heroTitle: "7awel el rasayel el mkhawta la maham wadha w mo3tamada.",
+        heroSubtitle: "Masnou3 lal founders wel freelancers. Talli3 maham bil English, Nederlands, aw Arabish—ebda bi 10 maham majjani kel shaher.",
+        freePlanTitle: "Starter (Majjani)",
+        proPlanTitle: "Pro Bila 7doud",
+        perMonth: "/ shaher",
+        freeFeat1: "✓ 10 maham majjani kel shaher",
+        freeFeat2: "✓ English, Nederlands & Arabish",
+        freeFeat3: "✓ Dashboard khass fik",
+        proFeat1: "✓ Maham bila 7doud kel shaher",
+        proFeat2: "✓ Tarjame fawriyye lal lista",
+        proFeat3: "✓ Dafe3 sari3 3an tariq iDEAL (ING)",
+        tabLogin: "Dkhol",
+        tabSignup: "3mel Account",
+        lblLoginEmail: "Email",
+        lblLoginPass: "Password",
+        btnLoginSubmit: "Dkhol",
+        lblSignupName: "El ism el kamel",
+        lblSignupEmail: "Email",
+        lblSignupPass: "Password (6 ahrof 3al aqal)",
+        lblSignupConfirm: "Akid el password",
+        btnSignupSubmit: "3mel Account Majjani",
+        logoutBtn: "Khrouj",
+        lblStep1: "1. Hot note mkhawta / risalet zboun / update",
+        lblApiKey: "OpenAI API Key (ikhtyari, byesta3mel local parser iza fadi)",
+        lblCatHint: "Category hint",
+        extractBtn: "Talli3 Action Item",
+        sampleBtn: "7amel Sample Note",
+        statusReady: "Jahez",
+        lblStep2: "2. Shouf w wafeq qabl ma tsayev",
+        lblOutTitle: "El 3enwen",
+        lblOutCategory: "El category",
+        lblOutPriority: "El awlawiya",
+        lblOutNextStep: "El khatwe el jeye",
+        saveBtn: "Wafeq w Sayev el Mahamme",
+        discardBtn: "Ilghi",
+        lblStep3: "3. Maham me7fouza bi 7sabak",
+        translateAllBtn: "Tarjim el Lista",
+        clearAllBtn: "M7i el Lista",
+        catLabel: "Category",
+        nextStepLabel: "El khatwe el jeye",
+        btnDone: "Khales",
+        btnReopen: "Fta7 tani",
+        btnTranslate: "Tarjim",
+        btnDelete: "M7i",
+        emptyQueue: 'Ma fi maham me7fouza ba3ed. Hot note fo2 w wafeq 3layha.',
+        sampleText: "Marhaba, fatouret el supplier #408 bi €320 la nhar el jem3a, w zboun sa2al iza fi 2 qita3 jahzin qabl el tnen."
+      }
+    };
+
+    const langSelect = document.getElementById("langSelect");
+    const landingAuthSection = document.getElementById("landingAuthSection");
+    const workspaceSection = document.getElementById("workspaceSection");
+    const userControls = document.getElementById("userControls");
+    const navPlanBadge = document.getElementById("navPlanBadge");
+    const navUserName = document.getElementById("navUserName");
+    const navUpgradeBtn = document.getElementById("navUpgradeBtn");
+    const logoutBtn = document.getElementById("logoutBtn");
+
+    const tabLogin = document.getElementById("tabLogin");
+    const tabSignup = document.getElementById("tabSignup");
+    const loginForm = document.getElementById("loginForm");
+    const signupForm = document.getElementById("signupForm");
+    const loginError = document.getElementById("loginError");
+    const signupError = document.getElementById("signupError");
+
+    const usageHeadline = document.getElementById("usageHeadline");
+    const usageSubtext = document.getElementById("usageSubtext");
+    const progressWrap = document.getElementById("progressWrap");
+    const progressBar = document.getElementById("progressBar");
+    const bannerIdealBtn = document.getElementById("bannerIdealBtn");
+    const paywallAlert = document.getElementById("paywallAlert");
+    const paywallUpgradeBtn = document.getElementById("paywallUpgradeBtn");
+
+    const rawInput = document.getElementById("rawInput");
+    const apiKeyInput = document.getElementById("apiKey");
+    const defaultCategoryEl = document.getElementById("defaultCategory");
+    const extractBtn = document.getElementById("extractBtn");
+    const sampleBtn = document.getElementById("sampleBtn");
+    const statusText = document.getElementById("statusText");
+
+    const reviewCard = document.getElementById("reviewCard");
+    const outTitle = document.getElementById("outTitle");
+    const outCategory = document.getElementById("outCategory");
+    const outPriority = document.getElementById("outPriority");
+    const outNextStep = document.getElementById("outNextStep");
+    const saveBtn = document.getElementById("saveBtn");
+    const discardBtn = document.getElementById("discardBtn");
+
+    const taskListEl = document.getElementById("taskList");
+    const translateAllBtn = document.getElementById("translateAllBtn");
+    const clearAllBtn = document.getElementById("clearAllBtn");
+
+    const idealModal = document.getElementById("idealModal");
+    const proceedIdealBtn = document.getElementById("proceedIdealBtn");
+    const demoActivateProBtn = document.getElementById("demoActivateProBtn");
+    const closeModalBtn = document.getElementById("closeModalBtn");
+
+    function currentMonthKey() {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    }
+
+    function getUsers() {
+      try {
+        return JSON.parse(localStorage.getItem(USERS_KEY) || "[]");
+      } catch {
+        return [];
+      }
+    }
+
+    function saveUsers(users) {
+      localStorage.setItem(USERS_KEY, JSON.stringify(users));
+    }
+
+    function getSessionEmail() {
+      return localStorage.getItem(SESSION_KEY) || "";
+    }
+
+    function setSessionEmail(email) {
+      if (email) localStorage.setItem(SESSION_KEY, email);
+      else localStorage.removeItem(SESSION_KEY);
+    }
+
+    function getCurrentUser() {
+      const email = getSessionEmail();
+      if (!email) return null;
+      return getUsers().find((u) => u.email === email) || null;
+    }
+
+    function updateCurrentUser(updater) {
+      const email = getSessionEmail();
+      if (!email) return;
+      const users = getUsers().map((u) => (u.email === email ? updater(u) : u));
+      saveUsers(users);
+    }
+
+    function getMonthlyCount(user) {
+      const month = currentMonthKey();
+      return (user.monthlyUsage && user.monthlyUsage[month]) || 0;
+    }
+
+    function incrementMonthlyCount() {
+      const month = currentMonthKey();
+      updateCurrentUser((u) => {
+        const usage = { ...(u.monthlyUsage || {}) };
+        usage[month] = (usage[month] || 0) + 1;
+        return { ...u, monthlyUsage: usage };
+      });
+    }
+
+    function hasReachedFreeLimit(user) {
+      if (!user || user.isPro) return false;
+      return getMonthlyCount(user) >= FREE_MONTHLY_LIMIT;
+    }
+
+    function getLang() {
+      const saved = localStorage.getItem(LANG_KEY);
+      return ["en", "nl", "arabish"].includes(saved) ? saved : "en";
+    }
+
+    function setLang(lang) {
+      localStorage.setItem(LANG_KEY, lang);
+      langSelect.value = lang;
+      applyLanguageUI();
+    }
+
+    function applyLanguageUI() {
+      const t = I18N[getLang()];
+      document.getElementById("lblLang").textContent = t.lblLang;
+      document.getElementById("heroTitle").textContent = t.heroTitle;
+      document.getElementById("heroSubtitle").textContent = t.heroSubtitle;
+      document.getElementById("freePlanTitle").textContent = t.freePlanTitle;
+      document.getElementById("proPlanTitle").textContent = t.proPlanTitle;
+      document.getElementById("perMonth1").textContent = t.perMonth;
+      document.getElementById("perMonth2").textContent = t.perMonth;
+      document.getElementById("freeFeat1").textContent = t.freeFeat1;
+      document.getElementById("freeFeat2").textContent = t.freeFeat2;
+      document.getElementById("freeFeat3").textContent = t.freeFeat3;
+      document.getElementById("proFeat1").textContent = t.proFeat1;
+      document.getElementById("proFeat2").textContent = t.proFeat2;
+      document.getElementById("proFeat3").textContent = t.proFeat3;
+      tabLogin.textContent = t.tabLogin;
+      tabSignup.textContent = t.tabSignup;
+      document.getElementById("lblLoginEmail").textContent = t.lblLoginEmail;
+      document.getElementById("lblLoginPass").textContent = t.lblLoginPass;
+      document.getElementById("btnLoginSubmit").textContent = t.btnLoginSubmit;
+      document.getElementById("lblSignupName").textContent = t.lblSignupName;
+      document.getElementById("lblSignupEmail").textContent = t.lblSignupEmail;
+      document.getElementById("lblSignupPass").textContent = t.lblSignupPass;
+      document.getElementById("lblSignupConfirm").textContent = t.lblSignupConfirm;
+      document.getElementById("btnSignupSubmit").textContent = t.btnSignupSubmit;
+      logoutBtn.textContent = t.logoutBtn;
+      document.getElementById("lblStep1").textContent = t.lblStep1;
+      document.getElementById("lblApiKey").textContent = t.lblApiKey;
+      document.getElementById("lblCatHint").textContent = t.lblCatHint;
+      extractBtn.textContent = t.extractBtn;
+      sampleBtn.textContent = t.sampleBtn;
+      statusText.textContent = t.statusReady;
+      document.getElementById("lblStep2").textContent = t.lblStep2;
+      document.getElementById("lblOutTitle").textContent = t.lblOutTitle;
+      document.getElementById("lblOutCategory").textContent = t.lblOutCategory;
+      document.getElementById("lblOutPriority").textContent = t.lblOutPriority;
+      document.getElementById("lblOutNextStep").textContent = t.lblOutNextStep;
+      saveBtn.textContent = t.saveBtn;
+      discardBtn.textContent = t.discardBtn;
+      document.getElementById("lblStep3").textContent = t.lblStep3;
+      translateAllBtn.textContent = t.translateAllBtn;
+      clearAllBtn.textContent = t.clearAllBtn;
+      renderTasks();
+    }
+
+    langSelect.addEventListener("change", async () => {
+      setLang(langSelect.value);
+      if (getCurrentUser() && loadTasks().length) {
+        await translateAllTasks(langSelect.value);
+      }
+    });
+
+    async function hashPassword(password, salt) {
+      const data = new TextEncoder().encode(`${salt}:${password}`);
+      const digest = await crypto.subtle.digest("SHA-256", data);
+      return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
+    }
+
+    function createSalt() {
+      const arr = new Uint8Array(16);
+      crypto.getRandomValues(arr);
+      return Array.from(arr).map((b) => b.toString(16).padStart(2, "0")).join("");
+    }
+
+    tabLogin.addEventListener("click", () => {
+      loginError.textContent = "";
+      signupError.textContent = "";
+      tabLogin.classList.add("active");
+      tabSignup.classList.remove("active");
+      loginForm.style.display = "block";
+      signupForm.style.display = "none";
+    });
+
+    tabSignup.addEventListener("click", () => {
+      loginError.textContent = "";
+      signupError.textContent = "";
+      tabSignup.classList.add("active");
+      tabLogin.classList.remove("active");
+      signupForm.style.display = "block";
+      loginForm.style.display = "none";
+    });
+
+    signupForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      signupError.textContent = "";
+      const name = document.getElementById("signupName").value.trim();
+      const email = document.getElementById("signupEmail").value.trim().toLowerCase();
+      const password = document.getElementById("signupPassword").value;
+      const confirm = document.getElementById("signupConfirm").value;
+
+      if (password !== confirm) {
+        signupError.textContent = "Passwords do not match.";
+        return;
+      }
+
+      const users = getUsers();
+      if (users.some((u) => u.email === email)) {
+        signupError.textContent = "An account with this email already exists.";
+        return;
+      }
+
+      const salt = createSalt();
+      const passwordHash = await hashPassword(password, salt);
+      users.push({
+        name,
+        email,
+        salt,
+        passwordHash,
+        isPro: false,
+        monthlyUsage: {},
+        createdAt: new Date().toISOString()
+      });
+      saveUsers(users);
+      setSessionEmail(email);
+      signupForm.reset();
+      syncUI();
+    });
+
+    loginForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      loginError.textContent = "";
+      const email = document.getElementById("loginEmail").value.trim().toLowerCase();
+      const password = document.getElementById("loginPassword").value;
+
+      const user = getUsers().find((u) => u.email === email);
+      if (!user) {
+        loginError.textContent = "No account found with this email.";
+        return;
+      }
+      const hash = await hashPassword(password, user.salt);
+      if (hash !== user.passwordHash) {
+        loginError.textContent = "Incorrect password.";
+        return;
+      }
+      setSessionEmail(email);
+      loginForm.reset();
+      syncUI();
+    });
+
+    logoutBtn.addEventListener("click", () => {
+      setSessionEmail("");
+      reviewCard.style.display = "none";
+      syncUI();
+    });
+
+    function syncUI() {
+      const user = getCurrentUser();
+      if (!user) {
+        setSessionEmail("");
+        landingAuthSection.style.display = "grid";
+        workspaceSection.style.display = "none";
+        userControls.style.display = "none";
+        return;
+      }
+
+      landingAuthSection.style.display = "none";
+      workspaceSection.style.display = "block";
+      userControls.style.display = "flex";
+      navUserName.textContent = user.name;
+
+      const used = getMonthlyCount(user);
+      if (user.isPro) {
+        navPlanBadge.textContent = "PRO UNLIMITED";
+        navPlanBadge.className = "plan-pill plan-pro";
+        navUpgradeBtn.style.display = "none";
+        bannerIdealBtn.style.display = "none";
+        paywallAlert.style.display = "none";
+        progressWrap.style.display = "none";
+        usageHeadline.textContent = `Pro Plan Active · ${used} tasks created this month (Unlimited)`;
+        usageSubtext.textContent = "Paid via iDEAL (ING) · Unlimited extractions & translations enabled.";
+        extractBtn.disabled = false;
+        saveBtn.disabled = false;
+      } else {
+        navPlanBadge.textContent = `FREE (${used}/${FREE_MONTHLY_LIMIT})`;
+        navPlanBadge.className = "plan-pill plan-free";
+        navUpgradeBtn.style.display = "inline-flex";
+        bannerIdealBtn.style.display = "inline-flex";
+        progressWrap.style.display = "block";
+
+        const pct = Math.min(100, Math.round((used / FREE_MONTHLY_LIMIT) * 100));
+        progressBar.style.width = `${pct}%`;
+
+        if (used >= FREE_MONTHLY_LIMIT) {
+          progressBar.classList.add("limit-hit");
+          usageHeadline.textContent = `Monthly Usage: ${FREE_MONTHLY_LIMIT} / ${FREE_MONTHLY_LIMIT} free tasks used (Limit Reached)`;
+          usageSubtext.textContent = "Upgrade via iDEAL (ING) for €19/month to unlock unlimited tasks.";
+          paywallAlert.style.display = "flex";
+          extractBtn.disabled = true;
+          saveBtn.disabled = true;
+        } else {
+          progressBar.classList.remove("limit-hit");
+          usageHeadline.textContent = `Monthly Usage: ${used} / ${FREE_MONTHLY_LIMIT} free tasks used`;
+          usageSubtext.textContent = `${FREE_MONTHLY_LIMIT - used} free tasks remaining this month before Pro upgrade is required.`;
+          paywallAlert.style.display = "none";
+          extractBtn.disabled = false;
+          saveBtn.disabled = false;
+        }
+      }
+
+      renderTasks();
+    }
+
+    // iDEAL / ING MODAL HANDLERS
+    function openIdealModal() {
+      idealModal.style.display = "grid";
+    }
+
+    function closeIdealModal() {
+      idealModal.style.display = "none";
+    }
+
+    navUpgradeBtn.addEventListener("click", openIdealModal);
+    bannerIdealBtn.addEventListener("click", openIdealModal);
+    paywallUpgradeBtn.addEventListener("click", openIdealModal);
+    closeModalBtn.addEventListener("click", closeIdealModal);
+
+    proceedIdealBtn.addEventListener("click", () => {
+      const user = getCurrentUser();
+      const bank = document.getElementById("bankSelect").value;
+      const checkoutUrl = new URL(IDEAL_PAYMENT_LINK);
+      if (user) checkoutUrl.searchParams.set("prefilled_email", user.email);
+      checkoutUrl.searchParams.set("bank", bank);
+      window.open(checkoutUrl.toString(), "_blank", "noopener,noreferrer");
+    });
+
+    demoActivateProBtn.addEventListener("click", () => {
+      updateCurrentUser((u) => ({ ...u, isPro: true, upgradedAt: new Date().toISOString() }));
+      closeIdealModal();
+      syncUI();
+      statusText.textContent = "Pro Unlimited unlocked!";
+    });
+
+    // TASK STORAGE & RENDERING
+    function userTasksKey(email) {
+      return `tf_pro_tasks_${email.toLowerCase()}`;
+    }
+
+    function loadTasks() {
+      const email = getSessionEmail();
+      if (!email) return [];
+      try {
+        return JSON.parse(localStorage.getItem(userTasksKey(email)) || "[]");
+      } catch {
+        return [];
+      }
+    }
+
+    function saveTasks(tasks) {
+      const email = getSessionEmail();
+      if (!email) return;
+      localStorage.setItem(userTasksKey(email), JSON.stringify(tasks));
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function renderTasks() {
+      const tText = I18N[getLang()];
+      const tasks = loadTasks();
+      if (!tasks.length) {
+        taskListEl.innerHTML = `<p class="task-meta">${escapeHtml(tText.emptyQueue)}</p>`;
+        return;
+      }
+
+      taskListEl.innerHTML = tasks
+        .map(
+          (t) => `
+          <div class="task-item ${t.done ? "done" : ""}">
+            <div>
+              <p class="task-title">${escapeHtml(t.title)} <span class="badge ${escapeHtml(t.priority)}">${escapeHtml(t.priority)}</span></p>
+              <div class="task-meta"><strong>${escapeHtml(tText.catLabel)}:</strong> ${escapeHtml(t.category)} · <strong>${escapeHtml(tText.nextStepLabel)}:</strong> ${escapeHtml(t.next_step)}</div>
+            </div>
+            <div class="task-controls">
+              <button class="btn-secondary btn-sm" onclick="toggleDone('${t.id}')">${t.done ? tText.btnReopen : tText.btnDone}</button>
+              <button class="btn-ghost btn-sm" onclick="translateSingleTask('${t.id}')">${tText.btnTranslate}</button>
+              <button class="btn-ghost btn-sm" onclick="deleteTask('${t.id}')">${tText.btnDelete}</button>
+            </div>
+          </div>
+        `
+        )
+        .join("");
+    }
+
+    window.toggleDone = function (id) {
+      saveTasks(loadTasks().map((t) => (t.id === id ? { ...t, done: !t.done } : t)));
+      renderTasks();
+    };
+
+    window.deleteTask = function (id) {
+      saveTasks(loadTasks().filter((t) => t.id !== id));
+      renderTasks();
+    };
+
+    clearAllBtn.addEventListener("click", () => {
+      saveTasks([]);
+      renderTasks();
+    });
+
+    sampleBtn.addEventListener("click", () => {
+      rawInput.value = I18N[getLang()].sampleText;
+    });
+
+    // TRANSLATION & EXTRACTION
+    function localFallbackTranslateText(text, targetLang) {
+      if (!text) return "";
+      if (targetLang === "nl") {
+        return text
+          .replace(/\bOperations\b/gi, "Operaties")
+          .replace(/\bBilling \/ Quotes\b/gi, "Facturatie & Offertes")
+          .replace(/\bSchool \/ Study\b/gi, "School & Studie")
+          .replace(/\bFollow-Up\b/gi, "Opvolging")
+          .replace(/\bConfirm details and execute\b/gi, "Bevestig details en voer uit");
+      }
+      if (targetLang === "arabish") {
+        return text
+          .replace(/\bOperations\b/gi, "El 3amaliyat")
+          .replace(/\bBilling \/ Quotes\b/gi, "Fawatir & Tas3ir")
+          .replace(/\bSchool \/ Study\b/gi, "Madrasa & Dirase")
+          .replace(/\bFollow-Up\b/gi, "Moutaba3a")
+          .replace(/\bConfirm details and execute\b/gi, "Akid el tafasil w naffiz")
+          .replace(/\bInvoice\b/gi, "Fatura")
+          .replace(/\bUrgent\b/gi, "3ajil");
+      }
+      return text
+        .replace(/\bOperaties\b/gi, "Operations")
+        .replace(/\bFacturatie & Offertes\
